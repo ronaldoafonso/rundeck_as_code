@@ -1,0 +1,52 @@
+---
+Parameters:
+  InstanceName:
+    Description: Rundeck EC2 instance name
+    Type: String
+    Default: Rundeck
+
+  ImageId:
+    Description: Rundeck AMI ID
+    Type: String
+    Default: ami-00874d747dde814fa
+
+  InstanceType:
+    Description: Rundeck EC2 instance type
+    Type: String
+    Default: r6i.2xlarge
+
+Resources:
+  Rundeck:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref RundeckKeyName
+      SubnetId: subnet-0e5273581c38975b5
+      SecurityGroupIds:
+        - !GetAtt RundeckSecurityGroup.GroupId
+      Tags:
+        - Key: Name
+          Value: !Ref InstanceName
+
+  RundeckKeyName:
+    Type: AWS::EC2::KeyPair
+    Properties: 
+      KeyName: rundeck-key
+      PublicKeyMaterial: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk37AemXWUUWYtqx8jXH8x6BrNSbbCBexQvZ+v/u+BFAH/9DaqOMfJww9TJVyBTCUEYAb9kBcplkuF60QOJvlTd9mpaZUeqIRpqxVK9S81q8tp/T2WkvkN2p0SQS7+9UtdHQtGbESY/pYxsvXdGpnZuTD7w5zHRGkGRrOL+rxAjQUZ1II3LAjW6Ia/W0q4okQo1oB47GeY+z33LPryj1Jxf9Fc8rXcAiucyC/ikw5PSklL9ofOp4VqGna0JT2S+4i35AeO/jUIhxTU3nlARiw+WxF8g2uXi8PDb/C0RW8GuUvdHSK/TS6aMtVhP+Rv6ecs6y6NedErl/PNzkCO+MoAnw7zWP8rxj+ZdvevthnJWtwUeEKXTiX4/rdrUGsFbicC9YgUjw5CKhjil3p5/ng47vPQHQcOvU7dUAlqOCoalToEP/7VJCSyndoxkdwsF7c7jIudt8Bk2VnFZT8P4iOLNodCon5091XlCKOrwiWGWxrU7ifl8LaFlxUcXpVdb3k= ronaldo@eagle'
+
+  RundeckSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH and HTTPS for Rundeck
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 4440
+          ToPort: 4440
+          CidrIp: 0.0.0.0/0
+      VpcId: vpc-d2bab8a8
+...
