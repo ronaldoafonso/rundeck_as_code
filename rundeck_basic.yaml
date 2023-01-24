@@ -1,0 +1,74 @@
+---
+- name: Install Basic Rundeck
+  hosts: rundeck
+  become: true
+
+  tasks:
+    - name: Add Rundeck APT repository key
+      apt_key:
+        url: https://packages.rundeck.com/pagerduty/rundeck/gpgkey
+        state: present
+
+    - name: Add Rundeck APT repository
+      copy:
+        src: files/rundeck.list
+        dest: /etc/apt/sources.list.d/rundeck.list
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Install all packages for Rundeck Server
+      apt:
+        pkg:
+          - openjdk-8-jre-headless
+          - rundeck
+        update_cache: yes
+        force_apt_get: yes
+      register: result
+      until: result is not failed
+      retries: 10
+      delay: 60
+
+    - name: Configure Rundeck Systemd daemon with no HTTPS
+      template:
+        src: templates/rundeckd
+        dest: /etc/default/rundeckd
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart Rundeck
+
+    - name: Copy basic Rundeck config files
+      template:
+        src: "templates/{{item.src}}"
+        dest: "/etc/rundeck/{{item.dest}}"
+        owner: rundeck
+        group: rundeck
+        mode: "{{item.mode}}"
+      loop:
+          - {src: "framework.properties",      dest: "framework.properties",      mode: "0640"}
+          - {src: "rundeck-config.properties", dest: "rundeck-config.properties", mode: "0640"}
+          - {src: "tokens.properties",         dest: "",                          mode: "0600"}
+          - {src: "realm.properties",          dest: "",                          mode: "0600"}
+          - {src: "resources.yaml",            dest: "",                          mode: "0644"}
+      notify:
+        - Restart Rundeck
+
+    - name: Remove SSL Properties file
+      file:
+        path: /etc/rundeck/ssl/ssl.properties
+        state: absent
+
+    - name: Start Rundeck service
+      service:
+        name: rundeckd
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart Rundeck
+      service:
+        name: rundeckd
+        state: restarted
+...

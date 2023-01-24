@@ -1,0 +1,21 @@
+---
+node01:
+  description: node01
+  hostname: 10.0.0.1
+  nodename: node01
+  osArch: amd64
+  osFamily: unix
+  osName: Linux
+  username: rundeck
+  ssh-key-storage-path: keys/project/project/rundeck
+
+node02:
+  description: node02
+  hostname: 10.0.0.2
+  nodename: node02
+  osArch: amd64
+  osFamily: unix
+  osName: Linux
+  username: rundeck
+  ssh-key-storage-path: keys/project/project/rundeck
+...
